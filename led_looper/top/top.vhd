@@ -53,6 +53,8 @@ begin
                     pulse_counter <= 0;
                 else
                     pulse_counter <= pulse_counter + 1;
+                    -- TODO: should move where this happens
+                    -- TODO: check more efficient wrap around by using precice/integer number of clock cycles instead of pulse_counter variable
                     led_index <= led_index + 1;
                 end if;
             end if;
