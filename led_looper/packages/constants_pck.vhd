@@ -5,4 +5,5 @@ package constants is
 
     -- how long each LED should be lit in milliseconds
     constant led_pulse_time_ms : natural := 250;
+
 end package;

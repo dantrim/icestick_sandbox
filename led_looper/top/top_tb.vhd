@@ -8,7 +8,7 @@ library led_looper;
 use led_looper.constants.all;
 
 library led_looper_sim;
-use led_looper_sim.constants.all;
+use led_looper_sim.sim_constants.all;
 use led_looper_sim.sim_subprograms.all; -- gen_clock, print_test_ok
 
 -- testbenches have no ports
@@ -41,7 +41,7 @@ begin
     RESET_PROC : process
     begin
         rst_button <= '1'; -- hold the reset
-        wait for 1 ms;
+        wait for 1 us;
         rst_button <= '0';
         wait;
     end process RESET_PROC;
@@ -49,7 +49,7 @@ begin
 
     RUN_PROC : process
     begin
-        wait for 10 ms;
+        wait for 1 ms;
         print_test_ok;
         finish;
     end process;

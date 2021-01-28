@@ -18,18 +18,13 @@ end top;
 
 architecture rtl of top is
 
-    -- constants
-    constant clk_cycles_per_pulse : natural
-        := natural((clock_frequency / 1.0e3)) * PULSE_TIME_MS;
-
-    subtype pulse_counter_type is natural range 0 to clk_cycles_per_pulse - 1;
-    signal pulse_counter : pulse_counter_type;
-
-    subtype led_index_type is unsigned(1 downto 0);
-    signal led_index : led_index_type;
+    -- counters for determining LED light timing and switching
+    constant c_CNT_1HZ : integer := 750_000;
+    signal r_CNT_1HZ : integer range 0 to c_CNT_1HZ := 0;
+    signal r_LED_SELECT : unsigned(1 downto 0);
 
     -- signals
-    signal leds : std_logic_vector(leds_o'range);
+    signal leds : std_logic_vector(leds_o'range) := (others => '0');
 
 
 begin
@@ -37,44 +32,24 @@ begin
     -- concurrent assignments
     leds_o <= leds;
 
-    -- simple checks (will assert in simulation runtime and/or during synthesis)
-    assert clk_cycles_per_pulse > 0 severity failure;
-    assert clk_cycles_per_pulse < natural(clock_frequency) severity failure;
-
     COUNT_PROC : process(clk)
     begin
         if rising_edge(clk) then
             if rst_button_i = '1' then
-                pulse_counter <= 0;
-                led_index <= (others => '0');
+                r_CNT_1HZ <= 0;
+                leds <= (others => '0');
+                r_LED_SELECT <= (others => '0');
             else
                 -- wrap, or increment
-                if pulse_counter = pulse_counter_type'high then
-                    pulse_counter <= 0;
-                else
-                    pulse_counter <= pulse_counter + 1;
-                    -- TODO: should move where this happens
-                    -- TODO: check more efficient wrap around by using precice/integer number of clock cycles instead of pulse_counter variable
-                    led_index <= led_index + 1;
-                end if;
-            end if;
-        end if;
-    end process;
-
-    LED_PROC : process(clk)
-    begin
-        --leds <= (others => '0');
-        if rising_edge(clk) then
-            if rst_button_i = '1' then
-                leds <= (others => '0');
-            else 
-                if pulse_counter = pulse_counter_type'high then
-                    report "foo";
+                if r_CNT_1HZ = c_CNT_1HZ - 1 then
                     leds <= (others => '0');
-                    leds(to_integer(led_index)) <= not leds(to_integer(led_index));
+                    leds(to_integer(r_LED_SELECT)) <= not leds(to_integer(r_LED_SELECT));
+                    r_CNT_1HZ <= 0;
+                    r_LED_SELECT <= r_LED_SELECT + 1;
+                else
+                    r_CNT_1HZ <= r_CNT_1HZ + 1;
                 end if;
             end if;
         end if;
     end process;
-
 end architecture;
